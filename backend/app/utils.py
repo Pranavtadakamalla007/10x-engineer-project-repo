@@ -115,3 +115,18 @@ def extract_variables(content: str) -> List[str]:
     import re
     pattern = r'\{\{(\w+)\}\}'
     return re.findall(pattern, content)
+def normalize_tags(tags: list[str]) -> list[str]:
+    """
+    Normalize tags:
+    - lowercase
+    - trim whitespace
+    - remove duplicates
+    """
+    cleaned = []
+
+    for tag in tags:
+        t = tag.strip().lower()
+        if t and t not in cleaned:
+            cleaned.append(t)
+
+    return cleaned

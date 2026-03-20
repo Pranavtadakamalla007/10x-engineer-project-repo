@@ -6,7 +6,7 @@ Includes prompt, collection, and health response schemas.
 
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import uuid4
 
 
@@ -49,6 +49,10 @@ class PromptBase(BaseModel):
         None,
         description="Identifier of the collection this prompt belongs to"
     )
+    tags: List[str] = Field(
+        default_factory=list,
+        description="List of tags associated with the prompt"
+    )
 
 
 class PromptCreate(PromptBase):
@@ -83,8 +87,7 @@ class Prompt(PromptBase):
         description="Timestamp when the prompt was last updated"
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============== Collection Models ==============
@@ -130,8 +133,7 @@ class Collection(CollectionBase):
         description="Timestamp when the collection was created"
     )
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============== Response Models ==============
