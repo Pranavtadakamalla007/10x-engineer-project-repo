@@ -10,7 +10,6 @@ function PromptForm({ onSuccess, selectedPrompt, setSelectedPrompt }) {
     if (selectedPrompt) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTitle(selectedPrompt.title || "");
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setDescription(selectedPrompt.content || "");
     }
   }, [selectedPrompt]);

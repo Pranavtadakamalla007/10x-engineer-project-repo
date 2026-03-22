@@ -1,38 +1,31 @@
 function PromptCard({ prompt, onDelete, onEdit }) {
   return (
-    <div style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "10px" }}>
-      <h3>{prompt.title}</h3>
-      <p>{prompt.content}</p>
+    <div className="bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
+      <h3 className="text-lg font-semibold">{prompt.title}</h3>
 
-      <small>ID: {prompt.id}</small>
+      <p className="text-gray-600 mt-2 line-clamp-3">
+        {prompt.content}
+      </p>
 
-      <br />
+      <div className="mt-4 flex justify-between items-center">
+        <button
+          onClick={() => onEdit(prompt)}
+          className="text-blue-600 text-sm hover:underline"
+        >
+          Edit
+        </button>
 
-      <button
-        onClick={() => {
-          console.log("EDIT CLICKED:", prompt.id);
-          if (onEdit) {
-            onEdit(prompt);
-          } else {
-            console.log("onEdit is undefined");
-          }
-        }}
-      >
-        Edit
-      </button>
-
-      <button
-        onClick={() => {
-          console.log("DELETE CLICKED:", prompt.id);
-          if (onDelete) {
-            onDelete(prompt.id);
-          } else {
-            console.log("onDelete is undefined");
-          }
-        }}
-      >
-        Delete
-      </button>
+        <button
+          onClick={() => {
+            if (confirm("Are you sure you want to delete this prompt?")) {
+              onDelete(prompt.id);
+            }
+          }}
+          className="text-red-600 text-sm hover:underline"
+        >
+          Delete
+        </button>
+      </div>
     </div>
   );
 }

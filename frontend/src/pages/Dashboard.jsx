@@ -1,79 +1,117 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../api/client";
-import PromptCard from "../components/prompts/PromptCard";
+import { getCollections } from "../api/collections";
+
 import PromptForm from "../components/prompts/PromptForm";
+import PromptList from "../components/prompts/PromptList";
+import SearchBar from "../components/shared/SearchBar";
+
+import CollectionList from "../components/collections/CollectionList";
+import CollectionForm from "../components/collections/CollectionForm";
 
 function Dashboard() {
   const [prompts, setPrompts] = useState([]);
+  const [collections, setCollections] = useState([]);
+  const [selectedCollection, setSelectedCollection] = useState(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedPrompt, setSelectedPrompt] = useState(null); // 🔥 NEW
+  const [selectedPrompt, setSelectedPrompt] = useState(null);
+  const [search, setSearch] = useState("");
 
-  const fetchPrompts = () => {
-    console.log("FETCHING PROMPTS...");
-
+  // 🔥 Fetch prompts with search + collection filter
+  const fetchPrompts = useCallback((searchValue = "", collectionId = null) => {
     setLoading(true);
     setError(null);
 
-    api.get("/prompts/")
+    const query = `/prompts/?search=${searchValue}&collection_id=${collectionId || ""}`;
+
+    api.get(query)
       .then((res) => {
-        console.log("FETCH RESPONSE:", res.data);
         setPrompts(res.data.prompts);
       })
-      .catch((err) => {
-        console.error("FETCH ERROR:", err);
+      .catch(() => {
         setError("Failed to load prompts");
       })
       .finally(() => setLoading(false));
+  }, []);
+
+  // 🔥 Fetch collections
+  const fetchCollections = () => {
+    getCollections()
+      .then((res) => {
+        setCollections(res.data.collections);
+      })
+      .catch((err) => console.error(err));
   };
 
   const handleDelete = (id) => {
-    console.log("HANDLE DELETE:", id);
-
     api.delete(`/prompts/${id}`)
-      .then(() => {
-        console.log("DELETED:", id);
-        fetchPrompts();
-      })
-      .catch((err) => console.error("DELETE ERROR:", err));
+      .then(() => fetchPrompts(search, selectedCollection))
+      .catch((err) => console.error(err));
   };
 
   const handleEdit = (prompt) => {
-    console.log("HANDLE EDIT:", prompt);
     setSelectedPrompt(prompt);
   };
 
+  // 🔥 Load prompts when search or collection changes
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchPrompts();
+    fetchPrompts(search, selectedCollection);
+  }, [search, selectedCollection, fetchPrompts]);
+
+  // 🔥 Load collections once
+  useEffect(() => {
+    fetchCollections();
   }, []);
 
   return (
-    <div>
-      <h1>PromptLab</h1>
+    <div className="max-w-6xl mx-auto">
 
-      <PromptForm
-        onSuccess={fetchPrompts}
-        selectedPrompt={selectedPrompt}
-        setSelectedPrompt={setSelectedPrompt}
+      {/* Collections */}
+      <CollectionForm onSuccess={fetchCollections} />
+
+      <CollectionList
+        collections={collections}
+        selected={selectedCollection}
+        onSelect={setSelectedCollection}
       />
 
-      {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
+      {/* Search */}
+      <SearchBar onSearch={setSearch} />
 
-      {!loading && prompts.length === 0 && (
-        <p>No prompts yet 🚀</p>
+      {/* Form */}
+      <div className="bg-white p-4 rounded-xl shadow mb-6">
+        <PromptForm
+          onSuccess={() => fetchPrompts(search, selectedCollection)}
+          selectedPrompt={selectedPrompt}
+          setSelectedPrompt={setSelectedPrompt}
+        />
+      </div>
+
+      {/* Loading */}
+      {loading && (
+        <div className="text-center text-gray-500 py-10">
+          Loading prompts...
+        </div>
       )}
 
-      {!loading &&
-        prompts.map((p) => (
-          <PromptCard
-            key={p.id}
-            prompt={p}
-            onDelete={handleDelete}
-            onEdit={handleEdit}   // 🔥 NEW
-          />
-        ))}
+      {/* Error */}
+      {error && (
+        <div className="text-center text-red-500 py-4">
+          {error}
+        </div>
+      )}
+
+      {/* List */}
+      {!loading && !error && (
+        <PromptList
+          prompts={prompts}
+          onDelete={handleDelete}
+          onEdit={handleEdit}
+        />
+      )}
     </div>
   );
 }
